@@ -1,19 +1,19 @@
-# /etc/nixos/flake.nix
+# flake.nix
 {
-  description = "My System Flake";
+  description = "My configuration";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable"; # IMPORTANT
   };
 
   outputs = { nixpkgs, chaotic, ... }: {
     nixosConfigurations = {
-      NixOS = nixpkgs.lib.nixosSystem {
+      NixOS = nixpkgs.lib.nixosSystem { # Replace "hostname" with your system's hostname
         system = "x86_64-linux";
         modules = [
-          ./configuration.nix # Your system configuration.
-          chaotic.nixosModules.default # OUR DEFAULT MODULE
+          ./configuration.nix
+          chaotic.nixosModules.default # IMPORTANT
         ];
       };
     };

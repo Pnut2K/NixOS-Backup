@@ -1,4 +1,3 @@
-
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
@@ -12,31 +11,9 @@
       ./hardware-configuration.nix
     ];
 
-  # Use the GRUB 2 boot loader.
-  boot.loader = {
-  timeout = 10;
-
-  efi = {
-    efiSysMountPoint = "/boot";
-  };
-
-  grub = {
-    enable = true;
-    efiSupport = true;
-    efiInstallAsRemovable = true; # Otherwise /boot/EFI/BOOT/BOOTX64.EFI isn't generated
-    devices = ["nodev"];
-    useOSProber = true;
-    extraEntriesBeforeNixOS = false;
-    extraEntries = ''
-      menuentry "Reboot" {
-        reboot
-      }
-      menuentry "Poweroff" {
-        halt
-      }
-    '';
-  };
-  };
+  # Bootloader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "NixOS"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -60,14 +37,27 @@
     xkb.variant = "";
   };
 
+  # Set default applications
+  xdg.mime.defaultApplications = {
+    "x-scheme-handler/http" = ["app.zen_browser.zen.desktop"];
+    "x-scheme-handler/https" = ["app.zen_browser.zen.desktop"];
+    "text/html" = ["app.zen_browser.zen.desktop"];
+    "application/pdf" = ["zathura.desktop"];
+  };
+  
   # Enable ZRAM swap
-  zramSwap.enable = true;
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    # This refers to the uncompressed size, actual memory usage will be lower.
+    memoryPercent = 200;
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.pnut = {
     isNormalUser = true;
     description = "Pnut";
-    extraGroups = [ "networkmanager" "wheel" "storage" "libvirtd" "vboxusers" ];
+    extraGroups = [ "networkmanager" "wheel" "storage" "libvirtd" "dialout" ];
     packages = with pkgs; [];
   };
   
@@ -93,10 +83,16 @@
   # Enable Flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # Enable Podman
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-   nerd-fonts.ubuntu-sans
+   via
    steam-devices-udev-rules
    micro
    fish
@@ -114,33 +110,31 @@
    spicetify-cli
    glib
    git
-   github-desktop
    perl
    curl
    wget
-   wineWowPackages.full
-   winetricks
    gtk3
-   cmake
-   gcc
    gettext
-   gnumake
    steam-run
-   gnome-browser-connector
    ghostty
    gnome-tweaks
    xdg-desktop-portal-gnome
    nss
    nspr
    nh
+   scx.full
+   zathura
+   github-desktop
+   distrobox
+   repomix
+   yt-dlp
+   audacious
   ];
- 
-  # Enable Virt-manager 
-    programs.virt-manager.enable = true;
-    users.groups.libvirtd.members = ["pnut"];
-    virtualisation.libvirtd.enable = true;
-    virtualisation.spiceUSBRedirection.enable = true;
-    
+
+  services.udev.packages = with pkgs; [
+    via
+    ];
+      
   # Enable sound with pipewire
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
@@ -170,6 +164,7 @@
     
   # Disable unwanted gnome programs
     environment.gnome.excludePackages = with pkgs; [
+    decibels
     gnome-tour
     gnome-connections
     epiphany # web browser
@@ -187,6 +182,7 @@
     gnome-weather
     gnome-maps
     gnome-software
+    gnome-console
     file-roller
   ];
 
@@ -197,11 +193,17 @@
   # Enable mullvad service and module
    services.mullvad-vpn.package = pkgs.mullvad-vpn;
    services.mullvad-vpn.enable = true;
-    
- # Enable CachyOS kernel
-   boot.kernelPackages = pkgs.linuxPackages_cachyos-rc;
-   boot.kernelParams = [ "quiet" "udev.log_level=3" ];
    
+ # Enable sched-ext
+   services.scx = {
+    enable = true;
+    scheduler = "scx_bpfland";
+  };
+      
+ # Enable latest kernel
+   boot.kernelPackages = pkgs.linuxPackages_testing;
+   boot.kernelParams = [ "quiet" "udev.log_level=3" ];
+  
  # Set initrd parameters
    boot.initrd.verbose = false;
    boot.initrd.systemd.enable = true;
