@@ -50,7 +50,7 @@
     enable = true;
     algorithm = "zstd";
     # This refers to the uncompressed size, actual memory usage will be lower.
-    memoryPercent = 200;
+    memoryPercent = 50;
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -203,7 +203,12 @@
  # Enable latest kernel
    boot.kernelPackages = pkgs.linuxPackages_testing;
    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
-  
+
+ # Set Swappiness
+   boot.kernel.sysctl = {
+     "vm.swappiness" = 100;
+   };
+   
  # Set initrd parameters
    boot.initrd.verbose = false;
    boot.initrd.systemd.enable = true;
@@ -229,8 +234,8 @@
 
   # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  # Explicitly disable the OpenSSH daemon.
+   services.openssh.enable = false;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
