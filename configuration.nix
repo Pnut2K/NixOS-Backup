@@ -201,7 +201,7 @@
   };
       
  # Enable latest kernel
-   boot.kernelPackages = pkgs.linuxPackages_testing;
+   boot.kernelPackages = pkgs.linuxPackages_latest;
    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
 
  # Set Swappiness
