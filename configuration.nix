@@ -92,13 +92,14 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+   vscode-fhs
+   starship
    via
    steam-devices-udev-rules
    micro
    fish
    fishPlugins.tide
    btop
-   noto-fonts
    fastfetch
    doas
    appimage-run
@@ -124,13 +125,24 @@
    nh
    scx.full
    zathura
-   github-desktop
    distrobox
    repomix
    yt-dlp
+   streamrip
    audacious
   ];
 
+ fonts.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-cjk-serif
+    noto-fonts-emoji
+    liberation_ttf
+    nerd-fonts.geist-mono
+    dejavu_fonts
+    
+  ]; 
+  
   services.udev.packages = with pkgs; [
     via
     ];
@@ -165,6 +177,7 @@
   # Disable unwanted gnome programs
     environment.gnome.excludePackages = with pkgs; [
     decibels
+    gnome-characters
     gnome-tour
     gnome-connections
     epiphany # web browser
