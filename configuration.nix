@@ -101,7 +101,6 @@
    fishPlugins.tide
    btop
    fastfetch
-   doas
    appimage-run
    busybox
    xdg-user-dirs
@@ -126,17 +125,21 @@
    scx.full
    zathura
    distrobox
-   repomix
    yt-dlp
-   streamrip
    audacious
+   noctalia-shell
   ];
+
+
+ programs.steam = {
+   enable = true;
+ };
 
  fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
     noto-fonts-cjk-serif
-    noto-fonts-emoji
+    noto-fonts-color-emoji
     liberation_ttf
     nerd-fonts.geist-mono
     dejavu_fonts
@@ -159,20 +162,24 @@
       };
   
   # Doas setup
-    security.doas.enable = true;
+    security.doas.enable = false;
     security.sudo.enable = false;
-    security.doas.extraRules = [{
-      users = ["pnut"];
-      keepEnv = true;
-      persist = true;
-      }];
 
+  # Polkit run0 auth caching
+    security.polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        if (subject.user == "pnut") {
+          if (action.id.indexOf("org.nixos") == 0) {
+            polkit.log("Caching admin authentication for single NixOS operation");
+            return polkit.Result.AUTH_ADMIN_KEEP;
+          }
+        }
+      });
+    '';
+    
   # Enable GNOME
-    services.xserver = {
-      enable = true;
-      displayManager.gdm.enable = true;
-      desktopManager.gnome.enable = true;	
-    };
+    services.displayManager.gdm.enable = true;
+    services.desktopManager.gnome.enable = true;	
     
   # Disable unwanted gnome programs
     environment.gnome.excludePackages = with pkgs; [
@@ -199,7 +206,21 @@
     file-roller
   ];
 
+  # Custom udev rules
+  services.udev.extraRules =''
 
+    SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="0337", MODE="0666"
+
+
+  '';
+
+  # Niri
+   programs.niri.enable = true;
+  
+  # Virt-manager
+   virtualisation.libvirtd.enable = true;
+   programs.virt-manager.enable = true;
+  
   # Enable flatpak support
    services.flatpak.enable = true;
 
@@ -214,7 +235,7 @@
   };
       
  # Enable latest kernel
-   boot.kernelPackages = pkgs.linuxPackages_latest;
+   boot.kernelPackages = pkgs.linuxPackages_testing;
    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
 
  # Set Swappiness
@@ -247,7 +268,10 @@
 
   # List services that you want to enable:
 
-  # Explicitly disable the OpenSSH daemon.
+  # Explicitly disable the Avahi daemon
+   services.avahi.enable = false;
+
+  # Explicitly disable the OpenSSH daemon
    services.openssh.enable = false;
 
   # Open ports in the firewall.
