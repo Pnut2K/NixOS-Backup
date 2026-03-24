@@ -48,9 +48,9 @@
   # Enable ZRAM swap
   zramSwap = {
     enable = true;
-    algorithm = "zstd";
+    algorithm = "lz4";
     # This refers to the uncompressed size, actual memory usage will be lower.
-    memoryPercent = 50;
+    memoryMax = 4096;
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -93,7 +93,6 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
    vscode-fhs
-   starship
    via
    steam-devices-udev-rules
    micro
@@ -107,16 +106,13 @@
    xdg-utils
    posy-cursors
    at-spi2-core
-   spicetify-cli
    glib
    git
-   perl
    curl
    wget
    gtk3
    gettext
-   steam-run
-   ghostty
+   ptyxis
    gnome-tweaks
    xdg-desktop-portal-gnome
    nss
@@ -126,11 +122,15 @@
    zathura
    distrobox
    yt-dlp
-   audacious
-   noctalia-shell
+   hydrapaper
+   sm64coopdx
   ];
 
-
+  programs.nix-ld.enable = true;
+    programs.nix-ld = {
+    libraries = pkgs.steam-run.fhsenv.args.multiPkgs pkgs;
+ };
+ 
  programs.steam = {
    enable = true;
  };
@@ -142,8 +142,8 @@
     noto-fonts-color-emoji
     liberation_ttf
     nerd-fonts.geist-mono
+    nerd-fonts.jetbrains-mono
     dejavu_fonts
-    
   ]; 
   
   services.udev.packages = with pkgs; [
@@ -165,18 +165,6 @@
     security.doas.enable = false;
     security.sudo.enable = false;
 
-  # Polkit run0 auth caching
-    security.polkit.extraConfig = ''
-      polkit.addRule(function(action, subject) {
-        if (subject.user == "pnut") {
-          if (action.id.indexOf("org.nixos") == 0) {
-            polkit.log("Caching admin authentication for single NixOS operation");
-            return polkit.Result.AUTH_ADMIN_KEEP;
-          }
-        }
-      });
-    '';
-    
   # Enable GNOME
     services.displayManager.gdm.enable = true;
     services.desktopManager.gnome.enable = true;	
@@ -190,6 +178,8 @@
     epiphany # web browser
     geary # email reader. Up to 24.05. Starting from 24.11 the package name is just geary.
     evince # document viewer
+    papers
+    decibels
     gnome-music
     totem
     simple-scan
@@ -223,7 +213,7 @@
   
   # Enable flatpak support
    services.flatpak.enable = true;
-
+   
   # Enable mullvad service and module
    services.mullvad-vpn.package = pkgs.mullvad-vpn;
    services.mullvad-vpn.enable = true;
@@ -231,16 +221,19 @@
  # Enable sched-ext
    services.scx = {
     enable = true;
-    scheduler = "scx_bpfland";
+    scheduler = "scx_cake";
   };
       
  # Enable latest kernel
    boot.kernelPackages = pkgs.linuxPackages_testing;
    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
 
- # Set Swappiness
+ # Set zram parameters
    boot.kernel.sysctl = {
-     "vm.swappiness" = 100;
+     "vm.swappiness" = 180;
+     "vm.watermark_boost_factor" = 0;
+     "vm.watermark_scale_factor" = 125;
+     "vm.page-cluster" = 0;
    };
    
  # Set initrd parameters
