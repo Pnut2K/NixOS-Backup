@@ -3,8 +3,7 @@
 
 
 
-{ config, pkgs, ... }:
-
+{ config, pkgs, inputs, ... }:
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -232,7 +231,7 @@
   };
       
  # Enable latest kernel
-   boot.kernelPackages = pkgs.linuxPackages_cachyos-rc;
+   boot.kernelPackages = pkgs.linuxPackages_latest;
    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
 
  # Set zram parameters
