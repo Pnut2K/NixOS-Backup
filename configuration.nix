@@ -9,8 +9,14 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      inputs.nix-mineral.nixosModules.nix-mineral
     ];
-
+   
+  # Enable nix-mineral 
+   nix-mineral = {
+    enable = true;
+   };
+   
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -57,7 +63,7 @@
   users.users.pnut = {
     isNormalUser = true;
     description = "Pnut";
-    extraGroups = [ "networkmanager" "wheel" "storage" "libvirtd" "dialout" ];
+    extraGroups = [ "networkmanager" "wheel" "storage" "dialout" ];
     packages = with pkgs; [];
   };
   
@@ -122,14 +128,15 @@
    zathura
    distrobox
    yt-dlp
-   hydrapaper
-   sm64coopdx
+   ananicy-cpp
+   ananicy-rules-cachyos_git
+   #sm64coopdx
   ];
 
-  programs.nix-ld.enable = true;
-    programs.nix-ld = {
-    libraries = pkgs.steam-run.fhsenv.args.multiPkgs pkgs;
- };
+ #programs.nix-ld.enable = true;
+ #  programs.nix-ld = {
+ #  libraries = pkgs.steam-run.fhsenv.args.multiPkgs pkgs;
+ #};
  
  programs.steam = {
    enable = true;
@@ -221,11 +228,11 @@
  # Enable sched-ext
    services.scx = {
     enable = true;
-    scheduler = "scx_cake";
+    scheduler = "scx_lavd";
   };
       
  # Enable latest kernel
-   boot.kernelPackages = pkgs.linuxPackages_testing;
+   boot.kernelPackages = pkgs.linuxPackages_cachyos-rc;
    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
 
  # Set zram parameters
