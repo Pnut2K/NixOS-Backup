@@ -9,6 +9,7 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       inputs.nix-mineral.nixosModules.nix-mineral
+      inputs.maccel.nixosModules.default
     ];
    
   # Enable nix-mineral 
@@ -97,45 +98,46 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-   vscode-fhs
-   via
-   steam-devices-udev-rules
-   micro
-   fish
-   fishPlugins.tide
-   btop
-   fastfetch
-   appimage-run
-   busybox
-   xdg-user-dirs
-   xdg-utils
-   posy-cursors
-   at-spi2-core
-   glib
-   git
-   curl
-   wget
-   gtk3
-   gettext
-   ptyxis
-   gnome-tweaks
-   xdg-desktop-portal-gnome
-   nss
-   nspr
-   nh
-   scx.full
-   zathura
-   distrobox
-   yt-dlp
    ananicy-cpp
    ananicy-rules-cachyos_git
-   #sm64coopdx
+   appimage-run
+   at-spi2-core
+   btop
+   busybox
+   curl
+   distrobox
+   fastfetch
+   fish
+   fishPlugins.tide
+   gettext
+   git
+   glib
+   gnome-tweaks
+   gtk3
+   helium
+   micro
+   nh
+   nspr
+   nss
+   posy-cursors
+   ptyxis
+   scx.full
+   steam-devices-udev-rules
+   via
+   vscode-fhs
+   wget
+   xdg-desktop-portal-gnome
+   xdg-user-dirs
+   xdg-utils
+   yt-dlp
+   zathura
   ];
 
- #programs.nix-ld.enable = true;
- #  programs.nix-ld = {
- #  libraries = pkgs.steam-run.fhsenv.args.multiPkgs pkgs;
- #};
+ programs.nix-ld = {
+    enable = true;
+    libraries = [(pkgs.runCommand "steamrun-lib" {}
+    "mkdir $out; ln -s ${inputs.pkgs.steam-run.fhsenv}/usr/lib64 $out/lib")];
+  };
  
  programs.steam = {
    enable = true;
@@ -152,6 +154,20 @@
     dejavu_fonts
   ]; 
   
+  # Enable Maccel
+  users.groups.maccel.members = ["pnut"];
+  hardware.maccel = {
+      enable = true;
+      enableCli = true;
+      parameters = {
+      mode = "no_accel";
+      sens_multiplier = 1.0;
+      yxRatio = 1.0;
+      inputDpi = 3200.0;
+      angleRotation = -7.0;
+     };
+  };
+  
   services.udev.packages = with pkgs; [
     via
     ];
@@ -167,13 +183,13 @@
       jack.enable = true;
       };
   
-  # Doas setup
-    security.doas.enable = false;
-    security.sudo.enable = false;
+  # sudo-rs setup
+    security.sudo-rs.enable = true;
 
   # Enable GNOME
     services.displayManager.gdm.enable = true;
-    services.desktopManager.gnome.enable = true;	
+    services.desktopManager.gnome.enable = true;
+    services.gnome.gnome-keyring.enable = true;
     
   # Disable unwanted gnome programs
     environment.gnome.excludePackages = with pkgs; [
@@ -199,7 +215,6 @@
     gnome-maps
     gnome-software
     gnome-console
-    file-roller
   ];
 
   # Custom udev rules
@@ -209,13 +224,6 @@
 
 
   '';
-
-  # Niri
-   programs.niri.enable = true;
-  
-  # Virt-manager
-   virtualisation.libvirtd.enable = true;
-   programs.virt-manager.enable = true;
   
   # Enable flatpak support
    services.flatpak.enable = true;
@@ -228,19 +236,47 @@
    services.scx = {
     enable = true;
     scheduler = "scx_lavd";
+    extraArgs = [ "performance" ];
   };
       
  # Enable latest kernel
-   boot.kernelPackages = pkgs.linuxPackages_latest;
-   boot.kernelParams = [ "quiet" "udev.log_level=3" ];
+  boot = {
+    plymouth = {
+      enable = true;
+      theme = "rings";
+      themePackages = with pkgs; [
+        # By default we would install all themes
+        (adi1090x-plymouth-themes.override {
+          selected_themes = [ "rings" ];
+        })
+      ];
+    };
 
- # Set zram parameters
-   boot.kernel.sysctl = {
+    # Enable "Silent boot"
+    consoleLogLevel = 3;
+    initrd.verbose = false;
+    kernelParams = [
+      "quiet"
+      "rd.udev.log_level=3"
+      "rd.systemd.show_status=auto"
+    ];
+     
+     #Set Kernel units
+     kernel.sysctl = {
      "vm.swappiness" = 180;
      "vm.watermark_boost_factor" = 0;
      "vm.watermark_scale_factor" = 125;
      "vm.page-cluster" = 0;
    };
+   
+    # Hide the OS choice for bootloaders.
+    # It's still possible to open the bootloader list by pressing any key
+    # It will just not appear on screen unless a key is pressed
+    loader.timeout = 0;
+  };
+
+ # Set zram parameters
+   boot.
    
  # Set initrd parameters
    boot.initrd.verbose = false;
