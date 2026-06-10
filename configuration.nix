@@ -94,7 +94,12 @@
     enable = true;
     dockerCompat = true;
   };
-
+  
+  # Enable Helium overlay
+  nixpkgs.overlays = [
+   inputs.helium.overlays.default
+  ];
+  
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -133,10 +138,10 @@
    zathura
   ];
 
+ # Nix-ld for running dynamically linked binaries
  programs.nix-ld = {
     enable = true;
-    libraries = [(pkgs.runCommand "steamrun-lib" {}
-    "mkdir $out; ln -s ${inputs.pkgs.steam-run.fhsenv}/usr/lib64 $out/lib")];
+    libraries = pkgs.steam-run.fhsenv.args.multiPkgs pkgs;
   };
  
  programs.steam = {
@@ -161,7 +166,7 @@
       enableCli = true;
       parameters = {
       mode = "no_accel";
-      sens_multiplier = 1.0;
+      sensMultiplier = 1.0;
       yxRatio = 1.0;
       inputDpi = 3200.0;
       angleRotation = -7.0;
@@ -267,6 +272,10 @@
      "vm.watermark_boost_factor" = 0;
      "vm.watermark_scale_factor" = 125;
      "vm.page-cluster" = 0;
+     
+     # Set initrd parameters
+     initrd.verbose = false;
+     initrd.systemd.enable = true;
    };
    
     # Hide the OS choice for bootloaders.
@@ -274,13 +283,7 @@
     # It will just not appear on screen unless a key is pressed
     loader.timeout = 0;
   };
-
- # Set zram parameters
-   boot.
    
- # Set initrd parameters
-   boot.initrd.verbose = false;
-   boot.initrd.systemd.enable = true;
 
  # Enable appimage interpreter
    boot.binfmt.registrations.appimage = {
