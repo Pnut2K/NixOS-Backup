@@ -46,9 +46,9 @@
 
   # Set default applications
   xdg.mime.defaultApplications = {
-    "x-scheme-handler/http" = ["app.zen_browser.zen.desktop"];
-    "x-scheme-handler/https" = ["app.zen_browser.zen.desktop"];
-    "text/html" = ["app.zen_browser.zen.desktop"];
+    "x-scheme-handler/http" = ["helium.desktop"];
+    "x-scheme-handler/https" = ["helium.desktop"];
+    "text/html" = ["org.gnome.TextEditor.desktop"];
     "application/pdf" = ["zathura.desktop"];
   };
   
@@ -108,8 +108,12 @@
    ananicy-rules-cachyos_git
    appimage-run
    at-spi2-core
+   blender
    btop
    busybox
+   cine
+   clamav
+   clamtk
    curl
    distrobox
    fastfetch
@@ -118,6 +122,7 @@
    gettext
    git
    glib
+   gnome-extension-manager
    gnome-tweaks
    gtk3
    helium
@@ -127,9 +132,9 @@
    nss
    posy-cursors
    ptyxis
+   recordbox
    scx.full
    steam-devices-udev-rules
-   via
    vscode-fhs
    wget
    xdg-desktop-portal-gnome
@@ -139,10 +144,16 @@
    zathura
   ];
  
+ # Enable Clamav daemon
+ services.clamav.daemon.enable = true;
+ services.clamav.updater.enable = true;
+ 
+ # Enable Steam
  programs.steam = {
    enable = true;
  };
-
+ 
+ # Fonts
  fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
@@ -168,10 +179,6 @@
      };
   };
   
-  services.udev.packages = with pkgs; [
-    via
-    ];
-      
   # Enable sound with pipewire
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
@@ -193,34 +200,39 @@
     
   # Disable unwanted gnome programs
     environment.gnome.excludePackages = with pkgs; [
-    decibels
-    gnome-characters
-    gnome-tour
-    gnome-connections
-    epiphany # web browser
-    geary # email reader. Up to 24.05. Starting from 24.11 the package name is just geary.
-    evince # document viewer
-    papers
-    decibels
-    gnome-music
-    totem
-    simple-scan
-    gnome-contacts
-    gnome-system-monitor
-    snapshot
-    yelp
-    gnome-clocks
-    gnome-calendar
-    gnome-weather
-    gnome-maps
-    gnome-software
-    gnome-console
+        decibels
+        epiphany
+        evince
+        geary
+    	gnome-calendar
+    	gnome-characters
+    	gnome-clocks
+    	gnome-connections
+    	gnome-console
+    	gnome-contacts
+    	gnome-font-viewer
+    	gnome-maps
+    	gnome-music
+    	gnome-shell-extensions
+    	gnome-software
+    	gnome-system-monitor
+    	gnome-tour
+    	gnome-weather
+    	papers
+    	seahorse
+    	showtime
+    	simple-scan
+    	snapshot
+    	totem
+    	yelp
   ];
 
   # Custom udev rules
   services.udev.extraRules =''
 
     SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="0337", MODE="0666"
+    
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="d043", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
 
 
   '';
@@ -243,11 +255,11 @@
   boot = {
     plymouth = {
       enable = true;
-      theme = "rings";
+      theme = "spinfinity";
       themePackages = with pkgs; [
         # By default we would install all themes
         (adi1090x-plymouth-themes.override {
-          selected_themes = [ "rings" ];
+          selected_themes = [ "spinfinity" ];
         })
       ];
     };
