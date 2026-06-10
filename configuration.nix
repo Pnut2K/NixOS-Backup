@@ -8,6 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./nix-ld.nix
       inputs.nix-mineral.nixosModules.nix-mineral
       inputs.maccel.nixosModules.default
     ];
@@ -137,12 +138,6 @@
    yt-dlp
    zathura
   ];
-
- # Nix-ld for running dynamically linked binaries
- programs.nix-ld = {
-    enable = true;
-    libraries = pkgs.steam-run.fhsenv.args.multiPkgs pkgs;
-  };
  
  programs.steam = {
    enable = true;
@@ -260,6 +255,7 @@
     # Enable "Silent boot"
     consoleLogLevel = 3;
     initrd.verbose = false;
+    initrd.systemd.enable = true;
     kernelParams = [
       "quiet"
       "rd.udev.log_level=3"
@@ -272,10 +268,6 @@
      "vm.watermark_boost_factor" = 0;
      "vm.watermark_scale_factor" = 125;
      "vm.page-cluster" = 0;
-     
-     # Set initrd parameters
-     initrd.verbose = false;
-     initrd.systemd.enable = true;
    };
    
     # Hide the OS choice for bootloaders.
