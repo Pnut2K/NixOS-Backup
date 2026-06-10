@@ -125,6 +125,7 @@
    gnome-extension-manager
    gnome-tweaks
    gtk3
+   handbrake
    helium
    micro
    nh
