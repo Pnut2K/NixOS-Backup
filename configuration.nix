@@ -16,11 +16,14 @@
   # Enable nix-mineral 
    nix-mineral = {
     enable = true;
+    preset = "compatibility";
    };
    
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # Kernel
 
   networking.hostName = "NixOS"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -46,20 +49,17 @@
 
   # Set default applications
   xdg.mime.defaultApplications = {
-    "x-scheme-handler/http" = ["helium.desktop"];
-    "x-scheme-handler/https" = ["helium.desktop"];
-    "text/html" = ["org.gnome.TextEditor.desktop"];
-    "application/pdf" = ["zathura.desktop"];
+    "x-scheme-handler/http" = [ "helium.desktop" ];
+    "x-scheme-handler/https" = [ "helium.desktop" ];
+    "text/html" = [ "org.gnome.TextEditor.desktop" ];
+    "application/pdf" = [ "zathura.desktop" ];
   };
   
   # Enable ZRAM swap
-  zramSwap = {
+  services.zram-generator = {
     enable = true;
-    algorithm = "lz4";
-    # This refers to the uncompressed size, actual memory usage will be lower.
-    memoryMax = 4096;
   };
-
+  
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.pnut = {
     isNormalUser = true;
@@ -113,13 +113,13 @@
    busybox
    cine
    clamav
-   clamtk
    curl
    distrobox
    fastfetch
    fish
    fishPlugins.tide
    gettext
+   gimp
    git
    glib
    gnome-extension-manager
@@ -127,6 +127,7 @@
    gtk3
    handbrake
    helium
+   inkscape
    micro
    nh
    nspr
@@ -136,6 +137,7 @@
    recordbox
    scx.full
    steam-devices-udev-rules
+   tor-browser
    vscode-fhs
    wget
    xdg-desktop-portal-gnome
@@ -237,7 +239,7 @@
 
 
   '';
-  
+
   # Enable flatpak support
    services.flatpak.enable = true;
    
@@ -249,20 +251,16 @@
    services.scx = {
     enable = true;
     scheduler = "scx_lavd";
-    extraArgs = [ "performance" ];
+    extraArgs = [ "--performance" ];
   };
       
- # Enable latest kernel
+ # Configure boot options
   boot = {
+    kernelPackages = pkgs.linuxPackages_cachyos-rc;
+    
     plymouth = {
       enable = true;
-      theme = "spinfinity";
-      themePackages = with pkgs; [
-        # By default we would install all themes
-        (adi1090x-plymouth-themes.override {
-          selected_themes = [ "spinfinity" ];
-        })
-      ];
+      theme = "bgrt";
     };
 
     # Enable "Silent boot"
@@ -286,7 +284,7 @@
     # Hide the OS choice for bootloaders.
     # It's still possible to open the bootloader list by pressing any key
     # It will just not appear on screen unless a key is pressed
-    loader.timeout = 0;
+    loader.timeout = 3;
   };
    
 
